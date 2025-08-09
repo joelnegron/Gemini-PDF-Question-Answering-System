@@ -1,14 +1,14 @@
-import streamlit as st
-from PyPDF2 import PdfReader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 import os
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
 import google.generativeai as genai
-from langchain.vectorstores import FAISS
-from langchain_google_genai import ChatGoogleGenerativeAI
+import streamlit as st
+from dotenv import load_dotenv
 from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
-from dotenv import load_dotenv
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.vectorstores import FAISS
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+from PyPDF2 import PdfReader
 
 # Load environment variables from .env file
 load_dotenv()
@@ -26,8 +26,8 @@ def get_pdf_text(pdf_docs):
 
     Returns:
         A string containing the extracted text from all PDF documents.
-    """
 
+    """
     text = ""
     for pdf in pdf_docs:
         pdf_reader = PdfReader(pdf)
@@ -45,8 +45,8 @@ def get_text_chunks(text):
 
     Returns:
         A list of text chunks.
-    """
 
+    """
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=1000)
     chunks = text_splitter.split_text(text)
     return chunks
@@ -61,8 +61,8 @@ def get_vector_store(text_chunks):
 
     Returns:
         A FAISS vector store.
-    """
 
+    """
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
     vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
     vector_store.save_local("faisss_index")
@@ -75,8 +75,8 @@ def get_conversional_chain():
 
     Returns:
         A LangChain question-answering chain.
-    """
 
+    """
     prompt_template = """
     Answer the question as detailed as possible from the provided context, make sure to provide all the details. If the answer is not available in the context, just say, "answer is not available in the context", don't provide the wrong answer.
 
@@ -106,8 +106,8 @@ def user_input(user_question, processed_pdf_text):
 
     Returns:
         The generated response from the conversational chain.
-    """
 
+    """  # noqa: D205
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
     new_db = FAISS.load_local("faisss_index", embeddings)
     docs = new_db.similarity_search(user_question)
@@ -124,10 +124,7 @@ def user_input(user_question, processed_pdf_text):
 
 # Main Streamlit app function to set up UI and handle user interactions
 def main():
-    """
-    Main function for the Streamlit app.
-    """
-
+    """Main function for the Streamlit app."""
     st.set_page_config("Chat With Multiple PDF")
     st.header("Chat with PDF's powered by Gemini 🙋‍♂️")
 
